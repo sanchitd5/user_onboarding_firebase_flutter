@@ -1,11 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
+import '../../models/modelHelpers.dart';
 import '../../models/models.dart';
 import './dioInstance.dart';
 
 class API {
   static final API api = API._privateConstructor();
   final Dio _dioinstance = DioInstance().instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   API._privateConstructor() {
     print("All APIs initialized.");
@@ -30,37 +34,32 @@ class API {
   }
 
   Future<DIOResponseBody> userLogin(UserLoginDetails details) async {
-    return _dioinstance
-        .post('user/login', data: details.toLoginApiJSON)
-        .then((respone) {
-      return DIOResponseBody(
-          success: true, data: respone.data['data']['accessToken']);
+    return _firebaseAuth
+        .signInWithEmailAndPassword(
+            email: details.username, password: details.password)
+        .then((response) async {
+      IdTokenResult token = await response.user.getIdToken();
+      return DIOResponseBody(success: true, data: token.token);
     }).catchError((error) {
       return DIOResponseBody(
-          success: false, data: error.response.data['message']);
+          success: false, data: (error as PlatformException).message);
     });
   }
 
-  Future<bool> accessTokenLogin(accessToken) async {
-    return _dioinstance
-        .post('user/accessTokenLogin',
-            options:
-                Options(headers: {'authorization': 'Bearer ' + accessToken}))
-        .then((respone) {
-      return true;
-    }).catchError((error) {
-      return false;
-    });
+  Future<bool> accessTokenLogin(String accessToken) async {
+    return _firebaseAuth.currentUser().then((user) => user != null);
   }
 
-  Future<bool> registerUser(userDetails) async {
-    return _dioinstance
-        .post('user/register', data: userDetails)
-        .then((respone) {
-      return true;
+  Future<DIOResponseBody> registerUser(userDetails) async {
+    print(userDetails);
+    return _firebaseAuth
+        .createUserWithEmailAndPassword(
+            email: userDetails["emailId"], password: "123456")
+        .then((response) {
+      return DIOResponseBody(success: true, data: response.user);
     }).catchError((error) {
-      print(error.response);
-      return false;
+      print(error);
+      return DIOResponseBody(success: false, data: error.message);
     });
   }
 }

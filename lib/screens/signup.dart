@@ -1,45 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../helpers/API/api.dart';
+import '../models/modelHelpers.dart';
 
-class SignupTextFeild extends StatelessWidget {
+class SignupTextFeild extends StatefulWidget {
   final String label, hint;
   final TextInputType type;
   final TextInputAction action;
   final Function validator, onSaved, onSubmit;
   final FocusNode focusNode;
   final bool isPassword;
-  SignupTextFeild({
-    this.hint,
-    this.label,
-    this.action,
-    this.onSubmit,
-    this.onSaved,
-    this.type,
-    this.validator,
-    this.focusNode,
-    this.isPassword,
-  });
+  final TextEditingController controller;
+  final List<TextInputFormatter> formatter;
+  SignupTextFeild(
+      {this.hint,
+      this.label,
+      this.action,
+      this.onSubmit,
+      this.onSaved,
+      this.type,
+      this.validator,
+      this.focusNode,
+      this.isPassword,
+      this.controller,
+      this.formatter});
+
+  @override
+  _SignupTextFeildState createState() => _SignupTextFeildState();
+}
+
+class _SignupTextFeildState extends State<SignupTextFeild> {
+  bool passwordVisible = true;
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        focusNode: focusNode,
-        textInputAction: action,
-        onFieldSubmitted: onSubmit,
-        obscureText: isPassword == null ? false : isPassword,
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        textInputAction: widget.action,
+        inputFormatters: widget.formatter,
+        onFieldSubmitted: widget.onSubmit,
+        obscureText: widget.isPassword == null ? false : passwordVisible,
         decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
+          labelText: widget.label,
+          hintText: widget.hint,
+          suffixIcon: widget.isPassword == null
+              ? null
+              : IconButton(
+                  icon: Icon(
+                    // Based on passwordVisible state choose the icon
+                    passwordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.blueAccent,
+                  ),
+                  onPressed: () {
+                    // Update the state i.e. toogle the state of passwordVisible variable
+                    setState(() {
+                      passwordVisible = !passwordVisible;
+                    });
+                  },
+                ),
+          labelStyle:
+              TextStyle(color: Colors.black45, fontWeight: FontWeight.bold),
+          focusColor: Colors.blueAccent,
+          hoverColor: Colors.blueAccent,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10.0),
+            ),
+            borderSide: BorderSide(color: Colors.blueAccent, width: 2.3),
+          ),
           border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10.0),
+            ),
             borderSide: BorderSide(
-              color: Theme.of(context).accentColor,
+              color: Colors.blueAccent,
             ),
           ),
         ),
-        keyboardType: type,
-        onSaved: onSaved,
-        validator: validator,
+        keyboardType: widget.type,
+        onSaved: widget.onSaved,
+        validator: widget.validator,
       ),
     );
   }
@@ -60,6 +102,9 @@ class SignUpForm extends StatefulWidget {
 class _SignUpFormState extends State<SignUpForm> {
   final _signUpFormKey = GlobalKey<FormState>();
   final SignUpValues signUpValues = SignUpValues();
+  final TextEditingController _passwordController = TextEditingController();
+  String confirmPasswordString = "";
+
   final lastname = FocusNode();
   final email = FocusNode();
   final password = FocusNode();
@@ -117,7 +162,7 @@ class _SignUpFormState extends State<SignUpForm> {
             action: TextInputAction.next,
             type: TextInputType.text,
             onSaved: (value) {
-              signUpValues.lastname = value;
+              signUpValues.email = value;
             },
             onSubmit: (_) {
               FocusScope.of(context).requestFocus(password);
@@ -134,6 +179,7 @@ class _SignUpFormState extends State<SignUpForm> {
             },
           ),
           SignupTextFeild(
+            controller: _passwordController,
             focusNode: password,
             label: 'Password',
             hint: 'secretpassword',
@@ -160,6 +206,9 @@ class _SignUpFormState extends State<SignUpForm> {
             isPassword: true,
             action: TextInputAction.next,
             type: TextInputType.text,
+            onSaved: (value) {
+              confirmPasswordString = value;
+            },
             onSubmit: (_) {
               FocusScope.of(context).requestFocus(number);
             },
@@ -167,8 +216,8 @@ class _SignUpFormState extends State<SignUpForm> {
               if (value.isEmpty) {
                 return 'Please enter the confirmation password';
               }
-              if (value != signUpValues.password) {
-                return 'Passwords don\'t match';
+              if (value != _passwordController.text) {
+                return "Passwords don\'t match";
               }
               return null;
             },
@@ -194,23 +243,26 @@ class _SignUpFormState extends State<SignUpForm> {
           RaisedButton(
             child: Text('SignUp'),
             onPressed: () async {
-              print(signUpValues.number);
-              var response = await API().registerUser({
-                "firstName": signUpValues.firstname.toString(),
-                "lastName": signUpValues.lastname.toString(),
-                "emailId": signUpValues.email.toString(),
-                "phoneNumber": signUpValues.number.toString(),
-                "countryCode": "+61",
-                "password": signUpValues.password
-              });
-              if (response)
-                return Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text('User Registered'),
-                ));
-              else
-                return Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text('Registration Error!'),
-                ));
+              if (_signUpFormKey.currentState.validate()) {
+                _signUpFormKey.currentState.save();
+                DIOResponseBody response = await API().registerUser({
+                  "firstName": signUpValues.firstname.toString(),
+                  "lastName": signUpValues.lastname.toString(),
+                  "emailId": signUpValues.email.toString(),
+                  "phoneNumber": signUpValues.number.toString(),
+                  "countryCode": "+61",
+                  "password": signUpValues.password
+                });
+                if (response.success)
+                  return Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text('User Registered'),
+                  ));
+                else
+                  return Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text(response.data),
+                  ));
+              }
+              return null;
             },
           ),
           RaisedButton(

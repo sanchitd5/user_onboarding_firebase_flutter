@@ -25,12 +25,16 @@ class Application extends StatelessWidget {
               ? Home()
               : FutureBuilder(
                   future: data.accessTokenLogin(),
-                  builder: (_, result) =>
-                      result.connectionState == ConnectionState.waiting
-                          ? Scaffold(
-                              body: Text('Loading..'),
-                            )
-                          : Login(),
+                  builder: (_, result) {
+                    if (result.connectionState == ConnectionState.waiting)
+                      return Scaffold(
+                        body: Text('Loading..'),
+                      );
+                    else if (result.data == true)
+                      return Home();
+                    else
+                      return Login();
+                  },
                 ),
           title: Configurations().appTitle,
           theme: ApplicationTheme().getAppTheme,

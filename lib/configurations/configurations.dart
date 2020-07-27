@@ -5,7 +5,7 @@ class Configurations {
   static final bool devBuild = true;
   static final bool debugBanner = false;
 
-  final bool _bypassbackend = true;
+  final bool _bypassbackend = false;
 
   final String _appTitle = "useronboarding";
   final String _appVersion = "0.0.1";
@@ -14,7 +14,7 @@ class Configurations {
   final String _backendUrl = "http://localhost:8041";
 
   final UserLoginDetails _devDetails = new UserLoginDetails(
-    username: "developer@dev.dev",
+    username: "user@test.com",
     password: "secretpassword",
   );
   final String _devAccessToken = "";
@@ -36,7 +36,7 @@ class Configurations {
 
   String get appCP => _appCopyRight;
 
-  UserLoginDetails get getDevDetails => _devDetails;
+  UserLoginDetails get devDetails => _devDetails;
 
   String get devAccessToken => _devAccessToken;
 }

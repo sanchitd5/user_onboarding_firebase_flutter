@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../helpers/API/api.dart';
 
 class UserDataProvider with ChangeNotifier {
   String _accessToken;
   bool _userLoggedIn = false;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   Future<bool> accessTokenLogin() async {
     final prefs = await SharedPreferences.getInstance();
@@ -41,11 +43,13 @@ class UserDataProvider with ChangeNotifier {
   }
 
   void logout() async {
-    _userLoggedIn = false;
-    notifyListeners();
-    _accessToken = null;
-    final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
+    _firebaseAuth.signOut().then((response) async {
+      _userLoggedIn = false;
+      _accessToken = null;
+      final prefs = await SharedPreferences.getInstance();
+      prefs.clear();
+      notifyListeners();
+    });
   }
 
   void changeLoginStatus(bool status) {

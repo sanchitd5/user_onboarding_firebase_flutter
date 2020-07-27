@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "802672675844",
+    "firebase_url": "https://useronboarding-3e2a9.firebaseio.com",
+    "project_id": "useronboarding-3e2a9",
+    "storage_bucket": "useronboarding-3e2a9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802672675844:android:6bca897ecb41f8f5723951",
+        "android_client_info": {
+          "package_name": "com.sanchitdang.user_onboarding"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "802672675844-lsh7jhapr3eh41b16ib7mme5bf4p1c0b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhuhI0d8bhiqzkyV_cSLiAxqoHovNPxqs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "802672675844-lsh7jhapr3eh41b16ib7mme5bf4p1c0b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

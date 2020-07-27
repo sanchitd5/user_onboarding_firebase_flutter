@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../configurations/configurations.dart';
 import '../helpers/helpers.dart';
 import '../providers/providers.dart';
@@ -17,9 +18,18 @@ class _LoginFormState extends State<LoginForm> {
   final _usernameFocusNode = FocusNode();
   final UserLoginDetails loginValues = UserLoginDetails();
   final Configurations _config = new Configurations();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  void changeDevModeValue(bool value) {
+  void _changeDevModeValue(bool value) {
     setState(() {
+      if (value) {
+        _usernameController.text = _config.devDetails.username;
+        _passwordController.text = _config.devDetails.password;
+      } else {
+        _usernameController.text = '';
+        _passwordController.text = '';
+      }
       _devModeSwitchValue = value;
     });
   }
@@ -29,17 +39,12 @@ class _LoginFormState extends State<LoginForm> {
     void performLogin(Function assignToken) async {
       if (_loginFormKey.currentState.validate()) {
         _loginFormKey.currentState.save();
-        DIOResponseBody loginCheck;
-        if (_devModeSwitchValue) {
-          loginCheck = await API().userLogin(_config.getDevDetails);
-        } else {
-          loginCheck = await API().userLogin(loginValues);
-        }
+        DIOResponseBody loginCheck = await API().userLogin(loginValues);
         if (loginCheck.success) {
           assignToken(loginCheck.data);
-          Navigator.of(context).pushReplacementNamed('/home');
         } else {
           Scaffold.of(context).showSnackBar(SnackBar(
+            behavior: SnackBarBehavior.floating,
             content: Text(loginCheck.data),
           ));
         }
@@ -61,7 +66,7 @@ class _LoginFormState extends State<LoginForm> {
                     Switch(
                       value: _devModeSwitchValue,
                       onChanged: (newValue) {
-                        changeDevModeValue(newValue);
+                        _changeDevModeValue(newValue);
                       },
                     ),
                   ],
@@ -70,6 +75,7 @@ class _LoginFormState extends State<LoginForm> {
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
               focusNode: _usernameFocusNode,
+              controller: _usernameController,
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_passwordFocusNode);
@@ -88,6 +94,7 @@ class _LoginFormState extends State<LoginForm> {
                 loginValues.username = value;
               },
               validator: (value) {
+                if (_devModeSwitchValue) return null;
                 if (value.isEmpty) return 'Please Enter the Email';
                 if (!TextHelper().validateEmail(value))
                   return 'Enter Valid Email';
@@ -99,6 +106,7 @@ class _LoginFormState extends State<LoginForm> {
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
               focusNode: _passwordFocusNode,
+              controller: _passwordController,
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 labelText: 'Password',
@@ -114,6 +122,8 @@ class _LoginFormState extends State<LoginForm> {
                 loginValues.password = value;
               },
               validator: (value) {
+                if (_devModeSwitchValue) return null;
+
                 if (value.isEmpty) {
                   return 'Please Enter the password';
                 }
