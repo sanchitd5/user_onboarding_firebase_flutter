@@ -18,8 +18,8 @@ class Configurations {
 
   final String _appTitle = "useronboarding";
   final String _appVersion = "0.0.1";
-  final String _author = 'Sanchit Dang';
-  final String _appCopyRight = "Sanchit Dang 2020";
+  final String _author = 'Deakin Launchpad';
+  final String _appCopyRight = "Deakin Launchpad 2021";
 
   final String _backendUrl = "http://localhost:8041";
 
